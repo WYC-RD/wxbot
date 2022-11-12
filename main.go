@@ -3,18 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/eatmoreapple/openwechat"
+	"github.com/WYC-RD/wxbot/MessageHandler"
 )
 
 func main() {
-	bot := openwechat.DefaultBot()
-	// bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式，上面登录不上的可以尝试切换这种模式
+	//bot := openwechat.DefaultBot()
+	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式，上面登录不上的可以尝试切换这种模式
 
 	// 注册消息处理函数
-	bot.MessageHandler = func(msg *openwechat.Message) {
-		if msg.IsText() && msg.Content == "ping" {
-			msg.ReplyText("pong")
-		}
-	}
+	bot.MessageHandler = MessageHandler.DefaultHandler
 	// 注册登陆二维码回调
 	bot.UUIDCallback = openwechat.PrintlnQrcodeUrl
 
