@@ -39,7 +39,6 @@ func NbaScore() string {
 	for _, sc := range Score {
 		//每一组就是一条热搜
 		if each_map, ok := sc.(map[string]interface{}); ok {
-
 			rs := fmt.Sprintf("%s vs %s\n%s - %s\n\n", each_map["away"], each_map["home"], each_map["awayScore"], each_map["homeScore"])
 			slice_sc = append(slice_sc, rs)
 		}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/WYC-RD/wxbot/source"
+	"github.com/WYC-RD/wxbot/MessageHandler"
 	"github.com/eatmoreapple/openwechat"
 )
 
@@ -17,23 +17,26 @@ func main() {
 	bot.HotLogin(reloadStorage)
 
 	// 注册消息处理函数
-	bot.MessageHandler = func(msg *openwechat.Message) {
-		if msg.IsText() && msg.Content == "ping" {
-			msg.ReplyText("没完没了是吧")
-		}
-		if msg.IsText() && msg.Content == "换行测试" {
-			msg.ReplyText("1 \n 2")
-		}
-		if msg.IsText() && msg.Content == "热搜" {
-			rs := source.GetHotSearch()
-			msg.ReplyText(rs)
-		}
-		if msg.IsText() && msg.Content == "nba" {
-			sc := source.NbaScore()
-			msg.ReplyText(sc)
-		}
-		fmt.Println(msg.Context, msg.Content, msg.MsgType, msg.FromUserName)
-	}
+	bot.MessageHandler = MessageHandler.DefaultHandler
+	//	func(msg *openwechat.Message) {
+	//	if msg.IsText() && msg.Content == "ping" {
+	//		msg.ReplyText("没完没了是吧")
+	//	}
+	//	if msg.IsText() && msg.Content == "换行测试" {
+	//		msg.ReplyText("1 \n 2")
+	//	}
+	//	if msg.IsText() && msg.Content == "热搜" {
+	//		rs := source.GetHotSearch()
+	//		msg.ReplyText(rs)
+	//	}
+	//	if msg.IsText() && msg.Content == "nba" {
+	//		sc := source.NbaScore()
+	//		msg.ReplyText(sc)
+	//	}
+	//
+	//	fmt.Println(msg.Context, "\ncontent:", msg.Content, msg.MsgType, msg.FromUserName,
+	//		"\nismap?:", msg.IsMap(), "\nisText?:", msg.IsText(), "\nisCard?:", msg.IsCard())
+	//}
 	// 注册登陆二维码回调
 	bot.UUIDCallback = openwechat.PrintlnQrcodeUrl
 
