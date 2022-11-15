@@ -52,8 +52,8 @@ func AppMessageHandler(message *openwechat.Message) {
 	case "哔哩哔哩":
 		bilibiliHandler(message, url)
 	case "微博":
-		weiboHandler(message, url)
+		weiboHandler(message, url, appName)
 	case "微博轻享版":
-		weiboHandler(message, url)
+		weiboHandler(message, url, appName)
 	}
 }

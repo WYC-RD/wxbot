@@ -12,6 +12,6 @@ func bilibiliHandler(message *openwechat.Message, url string) {
 	message.ReplyText(source.GetBvReplies(url))
 }
 
-func weiboHandler(message *openwechat.Message, url string) {
-	message.ReplyText(source.GetWeiboReplies(url))
+func weiboHandler(message *openwechat.Message, url string, appname string) {
+	message.ReplyText(source.GetWeiboReplies(url, appname))
 }

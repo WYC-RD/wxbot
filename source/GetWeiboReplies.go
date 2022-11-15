@@ -9,13 +9,18 @@ import (
 	"strings"
 )
 
-func GetWeiboReplies(shortUrl string) string {
-	weiboId := GetWeiboId(shortUrl)
+func GetWeiboReplies(shortUrl string, appname string) string {
+	var weiboId string
+
+	switch appname {
+	case "微博":
+		weiboId = GetWeiboId(shortUrl)
+	case "微博轻享版":
+		weiboId = GetLiteWeiboId(shortUrl)
+	}
 
 	firstUrl := "https://m.weibo.cn/comments/hotflow?mid="
-
 	url := firstUrl + weiboId
-
 	method := "GET"
 
 	client := &http.Client{}
@@ -59,7 +64,7 @@ func GetWeiboReplies(shortUrl string) string {
 				holeReply = append(holeReply, uname)
 				//holeReply =append(holeReply," : ")
 			}
-			source := fmt.Sprint("[", each["source"], "]", ":")
+			source := fmt.Sprint("[", each["source"], "]", "：")
 			holeReply = append(holeReply, source)
 			text := fmt.Sprint(each["text"])
 			regx1 := regexp.MustCompile(`<.+>.*</.+>`)
