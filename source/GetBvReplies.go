@@ -10,7 +10,7 @@ import (
 
 func GetBvReplies(shortUrl string) string {
 
-	Bv := GetRedirectUrl(shortUrl)
+	Bv := GetBvId(shortUrl)
 	//Bv := GetBv(rawUrl)
 	aid := GetAid(Bv)
 	firstUrl := "https://api.bilibili.com/x/v2/reply/main?oid="
@@ -46,7 +46,12 @@ func GetBvReplies(shortUrl string) string {
 
 	var replies []string
 
-	for _, rpy := range replies1 {
+	i := len(replies1)
+	if i >= 4 {
+		i = 4
+	}
+	for j := 0; j < i; j++ {
+		rpy := replies1[j]
 		var holeReply []string
 
 		if each, ok := rpy.(map[string]interface{}); ok {
