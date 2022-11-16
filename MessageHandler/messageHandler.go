@@ -35,14 +35,6 @@ func AppMessageHandler(message *openwechat.Message) {
 	dom, _ := goquery.NewDocumentFromReader(strings.NewReader(html5))
 	dom.Find("appname").Each(func(i int, selection *goquery.Selection) {
 		appName = selection.Text()
-
-		//if  appName == "哔哩哔哩" {
-		//	dom.Find("url").Each(func(i int, selection *goquery.Selection) {
-		//		url := selection.Text()
-		//		message.ReplyText(source.GetBvReplies(url))
-		//	})
-		//}
-		//if  appName == ""
 	})
 	dom.Find("url").Each(func(i int, selection *goquery.Selection) {
 		url = selection.Text()
