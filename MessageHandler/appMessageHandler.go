@@ -4,17 +4,28 @@ import (
 	"fmt"
 	"github.com/WYC-RD/wxbot/source"
 	"github.com/eatmoreapple/openwechat"
+	"image/png"
+	"os"
 )
 
 func nbaMessageHandler(message *openwechat.Message) {
 	message.ReplyText(source.NbaScore())
 }
 func bilibiliHandler(message *openwechat.Message, url string) {
-	reply, err := source.GetBvReplies(url)
+	replyPic, err := source.GetBvRepliesPic(url)
 	if err != nil {
 		fmt.Printf("GetBvReplies fail", err)
 	}
-	message.ReplyText(reply)
+	//message.ReplyText(reply)
+	picFlie, err := os.Create("/Users/wangzehong/Pictures/wxbot_Bilibi.png")
+	defer picFlie.Close()
+	if err != nil {
+		fmt.Println("creat bilibili replies picture fail")
+	}
+	png.Encode(picFlie, replyPic)
+	pic2, _ := os.Open("/Users/wangzehong/Pictures/wxbot_Bilibi.png")
+	defer pic2.Close()
+	message.ReplyImage(pic2)
 }
 
 func weiboHandler(message *openwechat.Message, url string, appname string) {

@@ -24,10 +24,11 @@ func main() {
 	// 注册消息处理函数
 
 	//// 登陆
-	if err := bot.Login(); err != nil {
-		fmt.Println(err)
-		return
-	}
+	//if err := bot.Login(); err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+
 	// 获取登陆的用户
 	self, err := bot.GetCurrentUser()
 	if err != nil {

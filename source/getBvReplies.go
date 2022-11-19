@@ -3,6 +3,9 @@ package source
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/golang/freetype"
+	"image"
+	"image/color"
 	"io/ioutil"
 	"net/http"
 )
@@ -26,66 +29,72 @@ type Content struct {
 	Message string `json:"message"`
 }
 
-func GetBvReplies(URL string) (string, error) {
+var Blue = color.RGBA{6, 174, 236, 255}
+var Pink = color.RGBA{251, 114, 153, 255}
+var FzHeiTi, _ = ioutil.ReadFile("/Users/wangzehong/Downloads/FangZhengHeiTiJianTi/FangZhengHeiTiJianTi-1.ttf")
+
+func GetBvReplies(URL string, picString PicString) (PicString, error) {
 
 	Bv, err := GetBvId(URL)
 	if err != nil {
 		println("GetBvID fail")
-		return "", err
+		return picString, err
 	}
 	fmt.Println("\nBV:", Bv)
 	aid, err := GetAid(Bv)
 	if err != nil {
-		return "", err
+		return picString, err
 	}
 	fmt.Println("\naid:", aid)
 	url := fmt.Sprintf("https://api.bilibili.com/x/v2/reply/main?oid=%s&plat=1&seek_rpid=&type=1", aid)
-
-	//method := "GET"
-
 	client := &http.Client{}
-
 	req, err := http.NewRequest("GET", url, nil)
-
 	if err != nil {
 		fmt.Println(err)
-		return "", nil
+		return picString, err
 	}
-
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return "", nil
+		return picString, err
 	}
-	//defer res.Body.Close()
-
+	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return "", err
+		return picString, err
 	}
-	//defer res.Body.Close()
+	defer res.Body.Close()
 
 	var result GetReplies
-
 	if err := json.Unmarshal(body, &result); err != nil {
-		return "", err
+		return picString, err
 	}
-	reply := ""
+	//reply := ""
 	for i, v := range result.Data.Replies {
-		if i > 4 {
+		if i > 2 {
 			break
 		}
-		reply += fmt.Sprintf("\n【%s】：%s\n", v.Member.Uname, v.Content.Message)
-		fmt.Println(reply)
+		uname := fmt.Sprintf("%s  ：", v.Member.Uname)
+		picString.DrawRune(uname, 40, FzHeiTi, 17, Pink)
+		message := fmt.Sprintf("%s\n", v.Content.Message)
+		picString.DrawRune(message, 40, FzHeiTi, 17, Blue)
+		//fmt.Println(reply)
 		for ii, vv := range v.Replies {
 			if ii > 2 {
 				break
 			}
-			reply += fmt.Sprintf("\t\tre:%s---【%s】\n", vv.Content.Message, vv.Member.Uname)
+			//picString.DrawRune("------",10, FzHeiTi, 40,Pink)
+			suname := fmt.Sprintf("------[%s] reply：", vv.Member.Uname)
+			picString.DrawRune(suname, 40, FzHeiTi, 17, Pink)
+			smessage := fmt.Sprintf("%s\n", vv.Content.Message)
+			picString.DrawRune(smessage, 40, FzHeiTi, 17, Blue)
+			//reply += fmt.Sprintf("[%s] reply：%s\n", vv.Member.Uname, vv.Content.Message)
 		}
+		enter := fmt.Sprint("\n\n")
+		picString.DrawRune(enter, 40, FzHeiTi, 15, Blue)
 	}
-	return reply, nil
+	return picString, nil
 }
 
 type getAid struct {
@@ -127,6 +136,24 @@ func GetAid(Bv string) (string, error) {
 		return "", err
 	}
 	aid := getData.Data.Aid
-	println("\nAid:", aid)
+	//println("\nAid:", aid)
 	return fmt.Sprintf("%d", aid), nil
+}
+
+//var repliesPic PicString
+
+func GetBvRepliesPic(URL string) (*image.RGBA, error) {
+	var err error
+	repliesPic := PicString{}
+	repliesPic.Context = freetype.NewContext()
+	repliesPic.Context = freetype.NewContext()
+	repliesPic.BackgroundInit(0, 0, 1080, 1920, "/Users/wangzehong/Pictures/bilibili.png")
+	repliesPic.ContextInit(200, repliesPic.Background)
+	repliesPic.Pt = freetype.Pt(40, 40+int(repliesPic.Context.PointToFixed(40)>>6))
+	repliesPic, err = GetBvReplies(URL, repliesPic)
+	if err != nil {
+		return nil, err
+	}
+	//repliesPic.DrawRune(replies, 10, FzHeiTi, 40,Blue)
+	return repliesPic.Background, nil
 }
