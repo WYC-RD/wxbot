@@ -12,7 +12,7 @@ func nbaMessageHandler(message *openwechat.Message) {
 	message.ReplyText(source.NbaScore())
 }
 func bilibiliHandler(message *openwechat.Message, url string) {
-	replyPic, err := source.GetBvRepliesPic(url)
+	replyPic, err := source.BilibiliPic(url)
 	if err != nil {
 		fmt.Printf("GetBvReplies fail", err)
 	}
@@ -23,7 +23,10 @@ func bilibiliHandler(message *openwechat.Message, url string) {
 		fmt.Println("creat bilibili replies picture fail")
 	}
 	png.Encode(picFlie, replyPic)
-	pic2, _ := os.Open("/Users/wangzehong/Pictures/wxbot_Bilibi.png")
+	pic2, err := os.Open("/Users/wangzehong/Pictures/wxbot_Bilibi.png")
+	if err != nil {
+		println("加载图片失败")
+	}
 	defer pic2.Close()
 	message.ReplyImage(pic2)
 }
