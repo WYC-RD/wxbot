@@ -22,5 +22,3 @@ require (
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 
 )
-
-replace github.com/eatmoreapple/openwechat v1.1.16 => /Users/wangzehong/GolandProjects/openwechat-wyc
