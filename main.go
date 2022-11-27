@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/WYC-RD/wxbot/MessageHandler"
 	"github.com/eatmoreapple/openwechat"
+	"github.com/skip2/go-qrcode"
 )
 
 func main() {
@@ -14,6 +15,8 @@ func main() {
 	//reloadStorage := openwechat.NewJsonFileHotReloadStorage("storage.json")
 	//注册登陆二维码回调
 	bot.UUIDCallback = openwechat.PrintlnQrcodeUrl
+	ConsoleQrCode(bot.UUID())
+
 	bot.MessageHandler = MessageHandler.DefaultHandler
 	// 执行热登录
 	//bot.HotLogin(reloadStorage)
@@ -46,4 +49,8 @@ func main() {
 
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
 	bot.Block()
+}
+func ConsoleQrCode(uuid string) {
+	q, _ := qrcode.New("https://login.weixin.qq.com/l/"+uuid, qrcode.Highest)
+	fmt.Println(q.ToString(true))
 }

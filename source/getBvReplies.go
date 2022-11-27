@@ -49,8 +49,11 @@ type Info struct {
 // 定义使用的字体和颜色
 var Blue = color.RGBA{6, 174, 236, 255}
 var Pink = color.RGBA{251, 114, 153, 255}
-var FzHeiTi, _ = ioutil.ReadFile("/Users/wangzehong/Pictures/fonts/FangZhengHeiTiJianTi-1.ttf")
-var smileHeiTi, _ = ioutil.ReadFile("/Users/wangzehong/Pictures/fonts/SmileySans-Oblique.ttf")
+var FzHeiTi, _ = ioutil.ReadFile("./source/material/FangZhengHeiTiJianTi-1.ttf")
+var smileHeiTi, _ = ioutil.ReadFile("./source/material/SmileySans-Oblique.ttf")
+var DongQing, _ = ioutil.ReadFile("./source/material/冬青黑体.ttf")
+var DongQingW4, _ = ioutil.ReadFile("./source/material/冬青黑体简体中文 W4.ttf")
+var DongQingW5, _ = ioutil.ReadFile("./source/material/冬青黑体简体中文 W5.ttf")
 var codeSize = 400
 
 // 往Bv结构体中写入回复内容
@@ -125,7 +128,7 @@ func (bvinfo *BvInfo) GetAid() (string, error) {
 
 func (bvinfo *BvInfo) genBvPic(picString PicString) (image.Image, error) {
 	picString.DrawRune(bvinfo.Other.Info.Title, smileHeiTi, 32, Pink)
-	picString.DrawRune("\n", FzHeiTi, 20, Pink)
+	picString.DrawRune("\n", DongQing, 20, Pink)
 	//获取缩略图
 	picIO, _ := http.Get(bvinfo.Other.Info.Pic)
 	rawPic, _ := jpeg.Decode(picIO.Body)
@@ -141,31 +144,31 @@ func (bvinfo *BvInfo) genBvPic(picString PicString) (image.Image, error) {
 		//修改PT的Y坐标，避免文字和缩略图区域重合
 		picString.Pt.Y += fixed.Int26_6(bvinfo.Other.Info.Image.Bounds().Dy() << 6)
 	}
-	picString.DrawRune("\n", FzHeiTi, 20, Pink)
-	picString.DrawRune("\n", FzHeiTi, 12, Pink)
+	picString.DrawRune("\n", DongQing, 20, Pink)
+	picString.DrawRune("\n", DongQing, 12, Pink)
 	for i, v := range bvinfo.Data.Replies {
 		if i > 2 {
 			break
 		}
 		uname := fmt.Sprintf("%s  ：", v.Member.Uname)
-		picString.DrawRune(uname, FzHeiTi, 17, Pink)
+		picString.DrawRune(uname, DongQing, 17, Pink)
 		message := fmt.Sprintf("%s\n", v.Content.Message)
-		picString.DrawRune(message, FzHeiTi, 17, Blue)
+		picString.DrawRune(message, DongQing, 17, Blue)
 		fmt.Println(uname, message)
 		for ii, vv := range v.Replies {
 			if ii > 2 {
 				break
 			}
 			suname := fmt.Sprintf("------[%s] reply：", vv.Member.Uname)
-			picString.DrawRune(suname, FzHeiTi, 17, Pink)
+			picString.DrawRune(suname, DongQing, 17, Pink)
 			smessage := fmt.Sprintf("%s\n", vv.Content.Message)
-			picString.DrawRune(smessage, FzHeiTi, 17, Blue)
+			picString.DrawRune(smessage, DongQing, 17, Blue)
 			//reply += fmt.Sprintf("[%s] reply：%s\n", vv.Member.Uname, vv.Content.Message)
 		}
 		enter := fmt.Sprint("\n\n")
-		picString.DrawRune(enter, FzHeiTi, 15, Blue)
+		picString.DrawRune(enter, DongQing, 15, Blue)
 	}
-	picString.SubImg = appendQr(*picString.Background, picString, bvinfo.Other.Info.URL)
+	picString.SubImg = appendQr(*picString.Background, picString, bvinfo.Other.Info.URL, color.RGBA{255, 255, 255, 255}, color.RGBA{116, 125, 140, 255})
 	//subImg :=picString.Background.SubImage(image.Rect(0, 0, picString.Background.Bounds().Dx(), int(picString.Pt.Y>>6)+codeSize<<2))
 	picString.LastY = int(picString.Pt.Y >> 6)
 	println("lasty:", picString.LastY)

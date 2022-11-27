@@ -1,20 +1,43 @@
 package MessageHandler
 
 import (
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/WYC-RD/wxbot/source"
 	"github.com/eatmoreapple/openwechat"
 	"strings"
 )
 
+type GroupMsgLog struct {
+	MsgID     string
+	GroupName string
+	Sender    string
+	MsgType   int
+	Content   string
+	MsgApp    string
+	IsAt      bool
+	URL       string
+}
+type MsgFile struct {
+	MsgID  string
+	Header string
+	File   []byte
+}
+
 func DefaultHandler(message *openwechat.Message) {
+	err := msgLog(message)
+	if err != nil {
+		println("日志记录失败")
+	}
+
 	if message.IsText() {
+		println(message.IsText())
+		println(message.Content)
 		textMessageHandler(message)
 	}
 	if message.MsgType == 49 {
-		fmt.Println(message.Context, "\ncontent:", message.Content, message.MsgType, message.FromUserName,
-			"\nismap?:", message.IsMap(), "\nisText?:", message.IsText(), "\nisCard?:", message.IsCard())
+		//fmt.Println(message.Context, "\ncontent:", message.Content, message.MsgType, message.FromUserName,
+		//	"\nismap?:", message.IsMap(), "\nisText?:", message.IsText(), "\nisCard?:", message.IsCard())
+		//println(message.Url)
 		AppMessageHandler(message)
 	}
 
@@ -38,14 +61,18 @@ func AppMessageHandler(message *openwechat.Message) {
 	})
 	dom.Find("url").Each(func(i int, selection *goquery.Selection) {
 		url = selection.Text()
+		//println("url:", url)
 		//message.ReplyText(source.GetBvReplies(url))
 	})
-	switch appName {
-	case "哔哩哔哩":
-		bilibiliHandler(message, url)
-	case "微博":
-		weiboHandler(message, url, appName)
-	case "微博轻享版":
-		weiboHandler(message, url, appName)
+	if url != "" {
+		switch appName {
+		case "哔哩哔哩":
+			bilibiliHandler(message, url)
+		case "微博":
+			weiboHandler(message, url, appName)
+		case "微博轻享版":
+			weiboHandler(message, url, appName)
+		}
+
 	}
 }

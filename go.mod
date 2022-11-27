@@ -7,6 +7,7 @@ require (
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/eatmoreapple/openwechat v1.1.16
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/lib/pq v1.10.7
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/image v0.1.0
@@ -22,6 +23,4 @@ require (
 
 )
 
-//replace (
-//	github.com/WYC-RD/wxbot/source v1.0.2 => /Users/wangzehong/GolandProjects/wxbot
-//)
+replace github.com/eatmoreapple/openwechat v1.1.16 => /Users/wangzehong/GolandProjects/openwechat-wyc

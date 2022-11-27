@@ -1,9 +1,11 @@
 package source
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/skip2/go-qrcode"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 	"image"
@@ -115,3 +117,16 @@ func PicInit(backgroundPath string) (*PicString, error) {
 	repliesPic.Pt = freetype.Pt(repliesPic.Padding, repliesPic.Padding*6)
 	return &repliesPic, nil
 }
+func appendQr(rgba image.RGBA, picString PicString, URL string, bgColor color.RGBA, qrColor color.RGBA) image.Image {
+	code, _ := myEncode(URL, qrcode.Medium, codeSize, bgColor, qrColor)
+	qrcode, _ := png.Decode(bytes.NewReader(code))
+	point := image.Point{(picString.Background.Bounds().Dx()/2 - codeSize/2) * -1, (int(picString.Pt.Y>>6) - codeSize/2 + codeSize/4) * -1}
+	draw.Draw(&rgba, rgba.Bounds(), qrcode, point, draw.Src)
+	SubImg := rgba.SubImage(image.Rectangle{image.Point{0, 0},
+		image.Point{picString.Background.Bounds().Dx(), codeSize + int(picString.Pt.Y>>6)}})
+	fmt.Println("point", image.Point{picString.Background.Bounds().Dx(), 2*codeSize + int(picString.Pt.Y>>6)})
+	return SubImg
+}
+
+//b站颜色
+// color.RGBA{255, 255, 255, 255}, color.RGBA{116, 125, 140, 255}
