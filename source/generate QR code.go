@@ -1,6 +1,7 @@
 package source
 
 import (
+	"fmt"
 	"github.com/skip2/go-qrcode"
 	"image/color"
 )
@@ -14,4 +15,8 @@ func myEncode(content string, level qrcode.RecoveryLevel, size int, background c
 		return nil, err
 	}
 	return q.PNG(size)
+}
+func ConsoleQrCode(uuid string) {
+	q, _ := qrcode.New("https://login.weixin.qq.com/l/"+uuid, qrcode.Highest)
+	fmt.Println(q.ToString(true))
 }

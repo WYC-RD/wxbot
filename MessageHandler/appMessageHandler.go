@@ -11,8 +11,8 @@ import (
 func nbaMessageHandler(message *openwechat.Message) {
 	message.ReplyText(source.NbaScore())
 }
-func bilibiliHandler(message *openwechat.Message, url string) {
-	replyPic, err := source.BilibiliPic(url)
+func bilibiliHandler(message *openwechat.Message) {
+	replyPic, err := source.BilibiliPic(message.Url)
 	if err != nil {
 		fmt.Printf("GetBvReplies fail", err)
 	}
@@ -31,8 +31,8 @@ func bilibiliHandler(message *openwechat.Message, url string) {
 	message.ReplyImage(pic2)
 }
 
-func weiboHandler(message *openwechat.Message, url string, appname string) {
-	replyPic, err := source.Wbhandle(url, appname)
+func weiboHandler(message *openwechat.Message, appname string) {
+	replyPic, err := source.Wbhandle(message.Url, appname)
 	if err != nil {
 		fmt.Printf("GetWbReplies fail", err)
 	}
