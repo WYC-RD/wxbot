@@ -6,11 +6,15 @@ import (
 	"github.com/eatmoreapple/openwechat"
 	_ "github.com/lib/pq"
 	"io/ioutil"
-	"os"
 	"strings"
 )
 
 func msgLog(message *openwechat.Message) error {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	if message.IsSendByGroup() && message.MsgId != "" {
 		db, err := sql.Open("postgres", "host=1.12.234.63 port=5432 user=postgres password=AAaa1111# dbname=postgres sslmode=disable")
 		if err != nil {
@@ -39,11 +43,6 @@ func msgLog(message *openwechat.Message) error {
 			switch message.MsgType {
 			case openwechat.MsgTypeImage:
 				Msg.Content = "图片消息"
-				//h, _ := message.GetFile()
-				//f, _ := ioutil.ReadAll(h.Body)
-				//pic, _ := png.Decode(bytes.NewReader(f))
-				//msgFlie.File = pic
-				os.Create(fmt.Sprintf("%s.img", message.MsgId))
 			case openwechat.MsgTypeEmoticon:
 				Msg.Content = "[动态表情]"
 			case openwechat.MsgTypeVideo:

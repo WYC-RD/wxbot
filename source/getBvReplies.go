@@ -22,6 +22,7 @@ type BvInfo struct {
 	}
 	Other getAid
 	Bv    string
+	bchan chan *BvInfo
 }
 type replies struct {
 	Member  Member    `json:"member"`
@@ -57,18 +58,23 @@ var DongQingW5, _ = ioutil.ReadFile("./source/material/冬青黑体简体中文 
 var codeSize = 400
 
 // 往Bv结构体中写入回复内容
-func (bvinfo *BvInfo) GetBvReplies(URL string) (BvInfo, error) {
+func (bvinfo *BvInfo) GetBvReplies(URL string) (*BvInfo, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	var err error
 	bvinfo.Other.Info.URL = URL
 	bvinfo.Bv, err = GetBvId(URL)
 	if err != nil {
 		println("GetBvID fail")
-		return *bvinfo, err
+		return bvinfo, err
 	}
 	//fmt.Println("\nBV:", Bv)
 	aid, err := bvinfo.GetAid()
 	if err != nil {
-		return *bvinfo, err
+		return bvinfo, err
 	}
 	//fmt.Println("\naid:", getaid.Data.Aid)
 	client := &http.Client{}
@@ -76,25 +82,25 @@ func (bvinfo *BvInfo) GetBvReplies(URL string) (BvInfo, error) {
 	//println(url)
 	if err != nil {
 		fmt.Println(err)
-		return *bvinfo, err
+		return bvinfo, err
 	}
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return *bvinfo, err
+		return bvinfo, err
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return *bvinfo, err
+		return bvinfo, err
 	}
 	defer res.Body.Close()
 	//var result GetReplies
 	if err1 := json.Unmarshal(body, bvinfo); err1 != nil {
-		return *bvinfo, err
+		return bvinfo, err
 	}
-	return *bvinfo, nil
+	return bvinfo, nil
 }
 
 // 获取往Bv结构体中写入AID、封面图、标题
@@ -127,14 +133,28 @@ func (bvinfo *BvInfo) GetAid() (string, error) {
 }
 
 func (bvinfo *BvInfo) genBvPic(picString PicString) (image.Image, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	picString.DrawRune(bvinfo.Other.Info.Title, smileHeiTi, 32, Pink)
 	picString.DrawRune("\n", DongQing, 20, Pink)
 	//获取缩略图
 	picIO, _ := http.Get(bvinfo.Other.Info.Pic)
-	rawPic, _ := jpeg.Decode(picIO.Body)
+	defer picIO.Body.Close()
+	rawPic, _, err := image.Decode(picIO.Body)
+	if err != nil {
+		err = nil
+		rawPic, err = jpeg.Decode(picIO.Body)
+		if err != nil {
+			fmt.Println("图片解码失败")
+			return nil, err
+		}
+	}
 	picWidth := picString.Background.Bounds().Dx() - 2*picString.Padding
 	size := float64(rawPic.Bounds().Dx()) / float64(picWidth)
-	fmt.Println("picWidth:", picWidth, "\nrawdx:", rawPic.Bounds().Dx(), "\nsize:", size)
+	//fmt.Println("picWidth:", picWidth, "\nrawdx:", rawPic.Bounds().Dx(), "\nsize:", size)
 	if size != 0 {
 		bvinfo.Other.Info.Image = resize.Resize(uint(float64(rawPic.Bounds().Dx())/size), uint(float64(rawPic.Bounds().Dy())/size), rawPic, resize.Lanczos3)
 		//粘贴缩略图

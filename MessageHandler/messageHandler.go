@@ -26,7 +26,11 @@ type MsgFile struct {
 }
 
 func DefaultHandler(message *openwechat.Message) {
-
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	if message.IsAt() {
 		gua, err := os.Open("./source/material/gua.png")
 		if err != nil {
@@ -35,18 +39,19 @@ func DefaultHandler(message *openwechat.Message) {
 		}
 		message.ReplyImage(gua)
 	}
-
-	if message.MsgId != "" {
-		go msgLog(message)
-		//if err != nil {
-		//	println("日志记录失败")
-		//}
-	}
+	go func() {
+		if message.MsgId != "" {
+			err := msgLog(message)
+			if err != nil {
+				println("日志记录失败")
+			}
+		}
+	}()
 	if message.IsText() {
-		go textMessageHandler(message)
+		textMessageHandler(message)
 	}
 	if message.MsgType == 49 {
-		go AppMessageHandler(message)
+		AppMessageHandler(message)
 	}
 
 }
@@ -67,11 +72,6 @@ func AppMessageHandler(message *openwechat.Message) {
 	dom.Find("appname").Each(func(i int, selection *goquery.Selection) {
 		appName = selection.Text()
 	})
-	//dom.Find("url").Each(func(i int, selection *goquery.Selection) {
-	//	url = selection.Text()
-	//	//println("url:", url)
-	//	//message.ReplyText(source.GetBvReplies(url))
-	//})
 	if message.Url != "" {
 		switch appName {
 		case "哔哩哔哩":

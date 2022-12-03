@@ -58,19 +58,11 @@ var BoldBrown = color.RGBA{89, 64, 46, 255}
 var LiteBrown = color.RGBA{89, 79, 72, 255}
 
 func (wb *wbInfo) GetWeiboReplies() error {
-	switch wb.App {
-	case "微博":
-		regx1 := regexp.MustCompile(`[^https://m.weibo.cn/status/].*?\?`)
-		wbid1 := regx1.FindAllString(wb.URL, -1)
-		wbid2 := fmt.Sprint(wbid1)
-		wb.ID = fmt.Sprint(wbid2[1 : len(wbid2)-2])
-	case "微博轻享版":
-		regx1 := regexp.MustCompile(`id=.*?&`)
-		wbid1 := regx1.FindAllString(wb.URL, -1)
-		wbid2 := fmt.Sprint(wbid1)
-		wb.ID = fmt.Sprint(wbid2[4 : len(wbid2)-2])
-	}
-
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://m.weibo.cn/comments/hotflow?mid="+wb.ID, nil)
 	if err != nil {
@@ -95,28 +87,17 @@ func (wb *wbInfo) GetWeiboReplies() error {
 		}
 	}
 
-	fmt.Println("rawreplies:", wb.Replies.Data)
-	//清洗评论中的html标签
-	//for i, v := range wb.Replies.Data {
-	//	if i > 3 {
-	//		break
-	//	}
-	//	regx1, _ := regexp.Compile(`<.+?>`)
-	//	v.Text = regx1.ReplaceAllString(v.Text, "")
-	//	for ii, vv := range v.Comments {
-	//		if ii > 2 {
-	//			break
-	//		}
-	//		regx1 := regexp.MustCompile(`<.+?>`)
-	//		vv.Text = regx1.ReplaceAllString(vv.Text, "")
-	//	}
-	//}
-	//fmt.Println("replies:", (wb.Replies.Data))
+	//fmt.Println("rawreplies:", wb.Replies.Data)
 	return nil
 }
 
 func (wb *wbInfo) GetWbDetail() error {
-	fmt.Println("ID:", wb.ID)
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	//fmt.Println("ID:", wb.ID)
 	clent := &http.Client{}
 	req, err := http.NewRequest("GET", "https://m.weibo.cn/statuses/extend?id="+wb.ID, nil)
 	if err != nil {
@@ -128,18 +109,18 @@ func (wb *wbInfo) GetWbDetail() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("body:", string(body))
+	//fmt.Println("body:", string(body))
 	if err := json.Unmarshal(body, &wb.Detail); err != nil {
 		wb.Detail.Data.LongTextContent = "无法获取获取该微博正文"
 		return err
 	}
-	fmt.Println(wb.Detail.Data)
-	fmt.Println("rawText:", wb.Detail.Data.LongTextContent)
+	//fmt.Println(wb.Detail.Data)
+	//fmt.Println("rawText:", wb.Detail.Data.LongTextContent)
 	regxbr, _ := regexp.Compile(`<br /><br />`)
 	wb.Detail.Data.LongTextContent = regxbr.ReplaceAllString(wb.Detail.Data.LongTextContent, "\n\n")
 	regx1, _ := regexp.Compile(`<.+?>`)
 	wb.Detail.Data.LongTextContent = regx1.ReplaceAllString(wb.Detail.Data.LongTextContent, "")
-	println("longtextcontent:", wb.Detail.Data.LongTextContent)
+	//println("longtextcontent:", wb.Detail.Data.LongTextContent)
 	return nil
 }
 
