@@ -5,6 +5,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/WYC-RD/wxbot/source"
 	"github.com/eatmoreapple/openwechat"
+	"image/png"
+	"os"
 	"strings"
 )
 
@@ -37,7 +39,31 @@ func DefaultHandler(message *openwechat.Message) {
 					fmt.Println(err)
 				}
 			}()
-			msg := strings.Replace(message.Content, "@狄森西", "", 1)
+			u, _ := message.Bot.GetCurrentUser()
+			msg := strings.Replace(message.Content, "@"+u.NickName+" ", "", 1)
+			if strings.Contains(msg, "我看到") {
+				picname := strings.Replace(msg, "我看到", "", -1)
+				pic, err := source.AiPic(picname)
+				if err != nil {
+					message.ReplyText(err.Error())
+					return
+				}
+				//ff := []rune(picname)
+				fname := fmt.Sprintf("./wxbot-pic-log/openai/%s.png", message.MsgId)
+				f, err := os.Create(fname)
+				defer f.Close()
+				if err != nil {
+					message.ReplyText(err.Error())
+					return
+				}
+				if err := png.Encode(f, pic); err != nil {
+					message.ReplyText(err.Error())
+					return
+				}
+				o, err := os.Open(fname)
+				message.ReplyImage(o)
+				return
+			}
 			reply, err := source.AiReply(msg)
 			if err != nil {
 				slice := strings.Split(source.Req, " ")

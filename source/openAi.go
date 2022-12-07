@@ -4,8 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/PullRequestInc/go-gpt3"
+	"github.com/bitly/go-simplejson"
 	"github.com/joho/godotenv"
+	"image"
+	png2 "image/png"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -14,7 +19,9 @@ import (
 var Req string
 
 func AiReply(msg string) (string, error) {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		return "", err
+	}
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		log.Fatalln("Missing API KEY")
@@ -52,4 +59,51 @@ func AiReply(msg string) (string, error) {
 	//fmt.Println(reply)
 	Req += reply
 	return reply, nil
+}
+
+func AiPic(msg string) (image.Image, error) {
+	url := "https://api.openai.com/v1/images/generations"
+	method := "POST"
+	r := fmt.Sprintf(`{"prompt":"%s","n":1,"size": "512x512"}`, msg)
+	payload := strings.NewReader(r)
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer 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")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Connection", "keep-alive")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println(string(body))
+	a, err := simplejson.NewJson(body)
+	if err != nil {
+		return nil, err
+	}
+	l, err := a.Get("data").GetIndex(0).Get("url").String()
+	if err != nil {
+		return nil, err
+	}
+	h, err := http.Get(l)
+	if err != nil {
+		return nil, err
+	}
+	p, err := png2.Decode(h.Body)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
