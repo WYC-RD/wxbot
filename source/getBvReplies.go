@@ -58,7 +58,7 @@ var DongQingW5, _ = ioutil.ReadFile("./source/material/冬青黑体简体中文 
 var codeSize = 400
 
 // 往Bv结构体中写入回复内容
-func (bvinfo *BvInfo) GetBvReplies(URL string) (*BvInfo, error) {
+func (bvinfo *BvInfo) GetBvReplies(URL string) error {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println(err)
@@ -69,12 +69,12 @@ func (bvinfo *BvInfo) GetBvReplies(URL string) (*BvInfo, error) {
 	bvinfo.Bv, err = GetBvId(URL)
 	if err != nil {
 		println("GetBvID fail")
-		return bvinfo, err
+		return err
 	}
 	//fmt.Println("\nBV:", Bv)
 	aid, err := bvinfo.GetAid()
 	if err != nil {
-		return bvinfo, err
+		return err
 	}
 	//fmt.Println("\naid:", getaid.Data.Aid)
 	client := &http.Client{}
@@ -82,25 +82,25 @@ func (bvinfo *BvInfo) GetBvReplies(URL string) (*BvInfo, error) {
 	//println(url)
 	if err != nil {
 		fmt.Println(err)
-		return bvinfo, err
+		return err
 	}
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return bvinfo, err
+		return err
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return bvinfo, err
+		return err
 	}
 	defer res.Body.Close()
 	//var result GetReplies
 	if err1 := json.Unmarshal(body, bvinfo); err1 != nil {
-		return bvinfo, err
+		return err
 	}
-	return bvinfo, nil
+	return err
 }
 
 // 获取往Bv结构体中写入AID、封面图、标题
@@ -141,7 +141,10 @@ func (bvinfo *BvInfo) genBvPic(picString PicString) (image.Image, error) {
 	picString.DrawRune(bvinfo.Other.Info.Title, smileHeiTi, 32, Pink)
 	picString.DrawRune("\n", DongQing, 20, Pink)
 	//获取缩略图
-	picIO, _ := http.Get(bvinfo.Other.Info.Pic)
+	picIO, err := http.Get(bvinfo.Other.Info.Pic)
+	if err != nil {
+		return nil, err
+	}
 	defer picIO.Body.Close()
 	rawPic, _, err := image.Decode(picIO.Body)
 	if err != nil {
@@ -183,13 +186,14 @@ func (bvinfo *BvInfo) genBvPic(picString PicString) (image.Image, error) {
 			picString.DrawRune(suname, DongQing, 17, Pink)
 			smessage := fmt.Sprintf("%s\n", vv.Content.Message)
 			picString.DrawRune(smessage, DongQing, 17, Blue)
-			//reply += fmt.Sprintf("[%s] reply：%s\n", vv.Member.Uname, vv.Content.Message)
 		}
-		enter := fmt.Sprint("\n\n")
-		picString.DrawRune(enter, DongQing, 15, Blue)
+		picString.DrawRune("\n\n", DongQing, 15, Blue)
 	}
-	picString.SubImg = appendQr(*picString.Background, picString, bvinfo.Other.Info.URL, color.RGBA{255, 255, 255, 255}, color.RGBA{116, 125, 140, 255})
-	//subImg :=picString.Background.SubImage(image.Rect(0, 0, picString.Background.Bounds().Dx(), int(picString.Pt.Y>>6)+codeSize<<2))
+	picString.SubImg, err = appendQr(*picString.Background, picString, bvinfo.Other.Info.URL, color.RGBA{255, 255, 255, 255}, color.RGBA{116, 125, 140, 255})
+	if err != nil {
+		return nil, err
+	}
+
 	picString.LastY = int(picString.Pt.Y >> 6)
 	println("lasty:", picString.LastY)
 	return picString.SubImg, nil
@@ -216,7 +220,6 @@ func GetBv(url string) string {
 func GetBvId(url string) (string, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 	//if err != nil {
-	//	println("\nerror on here\n")
 	//	return "", err
 	//}
 	client := &http.Client{}

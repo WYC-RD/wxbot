@@ -17,6 +17,9 @@ func myEncode(content string, level qrcode.RecoveryLevel, size int, background c
 	return q.PNG(size)
 }
 func ConsoleQrCode(uuid string) {
-	q, _ := qrcode.New("https://login.weixin.qq.com/l/"+uuid, qrcode.Highest)
+	q, err := qrcode.New("https://login.weixin.qq.com/l/"+uuid, qrcode.Highest)
+	if err != nil {
+		return
+	}
 	fmt.Println(q.ToString(true))
 }

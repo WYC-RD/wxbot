@@ -61,6 +61,7 @@ func (x *PicString) DrawRune(str string, font []byte, fontSize float64, c color.
 	f, err := truetype.Parse(font)
 	if err != nil {
 		println("fail to parse ttf ")
+		return
 	}
 	x.Font = f
 	// 指定字体
@@ -75,7 +76,6 @@ func (x *PicString) DrawRune(str string, font []byte, fontSize float64, c color.
 	opts.DPI = x.DPI
 	x.Face = truetype.NewFace(f, &opts)
 
-	//x.Pt = freetype.Pt(padding, padding+int(x.Context.PointToFixed(15)>>6))
 	for _, ch := range []rune(str) {
 		wordWidth, _ := x.Face.GlyphAdvance(ch)
 		if ch == '\t' {
@@ -93,11 +93,10 @@ func (x *PicString) DrawRune(str string, font []byte, fontSize float64, c color.
 			x.Background.Bounds().Add(image.Point{0, 4 * int(x.Face.Metrics().Height>>6)})
 		}
 
-		//fmt.Println("pt.x.round():", pt.X.Round(), "\nwordwidthRound:", wordWidth.Round(),
-		//	"\nx.bg.rect.dx:", x.Background.Rect.Dx(), "\npadding:", padding)
-		x.Pt, _ = x.Context.DrawString(string(ch), x.Pt)
-		//fmt.Println("\nPT.x:", int(x.Pt.X>>6), "Pt.Y:", int(x.Pt.Y>>6))
-
+		x.Pt, err = x.Context.DrawString(string(ch), x.Pt)
+		if err != nil {
+			return
+		}
 	}
 }
 func PicInit(backgroundPath string) (*PicString, error) {
@@ -117,15 +116,21 @@ func PicInit(backgroundPath string) (*PicString, error) {
 	repliesPic.Pt = freetype.Pt(repliesPic.Padding, repliesPic.Padding*6)
 	return &repliesPic, nil
 }
-func appendQr(rgba image.RGBA, picString PicString, URL string, bgColor color.RGBA, qrColor color.RGBA) image.Image {
-	code, _ := myEncode(URL, qrcode.Medium, codeSize, bgColor, qrColor)
-	qrcode, _ := png.Decode(bytes.NewReader(code))
+func appendQr(rgba image.RGBA, picString PicString, URL string, bgColor color.RGBA, qrColor color.RGBA) (image.Image, error) {
+	code, err := myEncode(URL, qrcode.Medium, codeSize, bgColor, qrColor)
+	if err != nil {
+		return nil, err
+	}
+	qrcode, err := png.Decode(bytes.NewReader(code))
+	if err != nil {
+		return nil, err
+	}
 	point := image.Point{(picString.Background.Bounds().Dx()/2 - codeSize/2) * -1, (int(picString.Pt.Y>>6) - codeSize/2 + codeSize/4) * -1}
 	draw.Draw(&rgba, rgba.Bounds(), qrcode, point, draw.Src)
 	SubImg := rgba.SubImage(image.Rectangle{image.Point{0, 0},
 		image.Point{picString.Background.Bounds().Dx(), codeSize + int(picString.Pt.Y>>6)}})
 	fmt.Println("point", image.Point{picString.Background.Bounds().Dx(), 2*codeSize + int(picString.Pt.Y>>6)})
-	return SubImg
+	return SubImg, nil
 }
 
 //b站颜色

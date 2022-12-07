@@ -32,13 +32,14 @@ func Wbhandle(URL string, appname string) (*image.Image, error) {
 	go func() {
 		if err := wb.GetWeiboReplies(); err != nil {
 			fmt.Println("获取评论失败")
+			return
 		}
 		rchan <- 1
 	}()
 	go func() {
 		if err := wb.GetWbDetail(); err != nil {
 			fmt.Println("获取详情失败")
-			//return nil, err
+			return
 		}
 		dchan <- 1
 	}()
@@ -46,6 +47,7 @@ func Wbhandle(URL string, appname string) (*image.Image, error) {
 	picstring, err := PicInit("./source/material/weiboBackground.png")
 	if err != nil {
 		fmt.Println("初始化图片失败")
+		return nil, err
 	}
 
 	<-rchan

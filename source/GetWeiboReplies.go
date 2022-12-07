@@ -141,7 +141,10 @@ func (wb *wbInfo) genWbPic(picString PicString) (image.Image, error) {
 		if i > 2 {
 			break
 		}
-		regx1, _ := regexp.Compile(`<.+?>`)
+		regx1, err := regexp.Compile(`<.+?>`)
+		if err != nil {
+			return nil, err
+		}
 		v.Text = regx1.ReplaceAllString(v.Text, "")
 		picString.DrawRune(v.User.ScreenName, DongQingW5, 17, BoldBrown)
 		picString.DrawRune("["+v.Source+"]", DongQingW4, 17, BoldBrown)
@@ -151,7 +154,10 @@ func (wb *wbInfo) genWbPic(picString PicString) (image.Image, error) {
 			if ii > 2 {
 				break
 			}
-			regx1, _ := regexp.Compile(`<.+?>`)
+			regx1, err := regexp.Compile(`<.+?>`)
+			if err != nil {
+				return nil, err
+			}
 			vv.Text = regx1.ReplaceAllString(vv.Text, "")
 			picString.DrawRune("------"+vv.User.ScreenName, DongQingW5, 15, BoldBrown)
 			picString.DrawRune("["+vv.Source+"]", DongQingW4, 15, BoldBrown)
@@ -162,7 +168,11 @@ func (wb *wbInfo) genWbPic(picString PicString) (image.Image, error) {
 	}
 	picString.DrawRune("\n\n", DongQing, 15, color.RGBA{207, 201, 196, 255})
 	//生成二维码
-	picString.SubImg = appendQr(*picString.Background, picString, wb.URL, color.RGBA{251, 252, 245, 255}, color.RGBA{207, 201, 196, 255})
+	var err error
+	picString.SubImg, err = appendQr(*picString.Background, picString, wb.URL, color.RGBA{251, 252, 245, 255}, color.RGBA{207, 201, 196, 255})
+	if err != nil {
+		return nil, err
+	}
 	picString.LastY = int(picString.Pt.Y >> 6)
 	return picString.SubImg, nil
 }

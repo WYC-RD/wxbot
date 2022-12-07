@@ -5,7 +5,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/WYC-RD/wxbot/source"
 	"github.com/eatmoreapple/openwechat"
-	"os"
 	"strings"
 )
 
@@ -32,12 +31,25 @@ func DefaultHandler(message *openwechat.Message) {
 		}
 	}()
 	if message.IsAt() {
-		gua, err := os.Open("./source/material/gua.png")
-		if err != nil {
-			fmt.Println("表情发送失败")
-			return
-		}
-		message.ReplyImage(gua)
+		go func() {
+			defer func() {
+				if err := recover(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+			msg := strings.Replace(message.Content, "@狄森西", "", 1)
+			reply, err := source.AiReply(msg)
+			if err != nil {
+				slice := strings.Split(source.Req, " ")
+				source.Req = strings.Join(slice[2:], " ")
+				reply, err := source.AiReply(msg)
+				message.ReplyText(reply)
+				if err != nil {
+					message.ReplyText(err.Error())
+				}
+			}
+			message.ReplyText(reply)
+		}()
 	}
 	go func() {
 		if message.MsgId != "" {
@@ -61,7 +73,8 @@ func textMessageHandler(message *openwechat.Message) {
 	case "nba":
 		nbaMessageHandler(message)
 	case "热搜":
-		message.ReplyText(source.GetHotSearch())
+		hotsearchHandler(message)
+		//message.ReplyText(source.GetHotSearch())
 
 	}
 }

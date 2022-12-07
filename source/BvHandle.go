@@ -6,31 +6,31 @@ import (
 )
 
 func BilibiliPic(URL string) (*image.Image, error) {
-	bchan := make(chan *BvInfo)
+	bchan := make(chan int)
+	pic := make(chan *PicString)
+	bvinfo := BvInfo{}
 	go func() {
-		bvinfo := BvInfo{}
-		bv, err := bvinfo.GetBvReplies(URL)
+		err := bvinfo.GetBvReplies(URL)
 		if err != nil {
 			fmt.Println("获取评论失败")
-			//return nil, err
+			return
 		}
-		bchan <- bv
+		bchan <- 1
 	}()
-	pic := make(chan *image.Image)
+
 	go func() {
 		picstring, err := PicInit("./source/material/bilibiliBackground3.png")
 		if err != nil {
 			fmt.Println("初始化图片失败")
-			//return nil
+			return
 		}
-		bvinfo := <-bchan
-		rgba, err := bvinfo.genBvPic(*picstring)
-		if err != nil {
-			//return nil, err
-		}
-		pic <- &rgba
+		pic <- picstring
 	}()
-	rgba := <-pic
-	//rgba = image.RGBA
-	return rgba, nil
+	picstring := <-pic
+	<-bchan
+	rgba, err := bvinfo.genBvPic(*picstring)
+	if err != nil {
+		fmt.Println("生成图片失败")
+	}
+	return &rgba, nil
 }

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func NbaScore() string {
+func NbaScore() (string, error) {
 
 	url := "https://api.sports.163.com/api/nba/v2/schedule/getRecent?product=pc"
 	method := "GET"
@@ -18,31 +18,35 @@ func NbaScore() string {
 
 	if err != nil {
 		fmt.Println(err)
-		//return string(err)
+		return "", err
 	}
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		//return err
+		return "", err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		//return err
+		return "", err
 	}
-	rez, _ := simplejson.NewJson([]byte(string(body)))
-	Score, _ := rez.Get("data").Get("1").Array()
+	rez, err := simplejson.NewJson([]byte(string(body)))
+	if err != nil {
+		return "", err
+	}
+	Score, err := rez.Get("data").Get("1").Array()
+	if err != nil {
+		return "", err
+	}
 	//遍历数组
 	var slice_sc []string
 	for _, sc := range Score {
-		//每一组就是一条热搜
 		if each_map, ok := sc.(map[string]interface{}); ok {
 			rs := fmt.Sprintf("%s vs %s\n%s - %s\n\n", each_map["away"], each_map["home"], each_map["awayScore"], each_map["homeScore"])
 			slice_sc = append(slice_sc, rs)
 		}
 	}
-	return strings.Join(slice_sc, "")
-
+	return strings.Join(slice_sc, ""), nil
 }
