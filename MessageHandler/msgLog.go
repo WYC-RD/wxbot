@@ -22,19 +22,18 @@ func msgLog(message *openwechat.Message) error {
 			return err
 		}
 		defer db.Close()
-		var Msg GroupMsgLog
 
+		var Msg GroupMsgLog
 		if sendGroup, err1 := message.SenderInGroup(); err1 == nil {
 			Msg.Sender = sendGroup.NickName
 		}
-
 		if group, err2 := message.Sender(); err2 == nil {
 			Msg.GroupName = group.NickName
 		}
-
 		Msg.IsAt = message.IsAt()
 		Msg.URL = message.Url
 		Msg.MsgID = message.MsgId
+
 		if message.MsgType == 49 {
 			Msg.Content = "AppID:" + message.AppInfo.AppID + " URL:" + message.Url
 			Msg.MsgApp = message.AppInfo.AppID
@@ -52,8 +51,14 @@ func msgLog(message *openwechat.Message) error {
 			}
 			msgFlie.MsgID = message.MsgId
 			if message.IsEmoticon() == false {
-				h, _ := message.GetFile()
-				msgFlie.File, _ = ioutil.ReadAll(h.Body)
+				h, err := message.GetFile()
+				if err != nil {
+					return err
+				}
+				msgFlie.File, err = ioutil.ReadAll(h.Body)
+				if err != nil {
+					return err
+				}
 				for k, v := range h.Header {
 					msgFlie.Header += k + ":" + strings.Join(v, " ") + "|"
 				}

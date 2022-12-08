@@ -5,8 +5,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/WYC-RD/wxbot/source"
 	"github.com/eatmoreapple/openwechat"
-	"image/png"
-	"os"
+	"log"
 	"strings"
 )
 
@@ -32,51 +31,28 @@ func DefaultHandler(message *openwechat.Message) {
 			fmt.Println(err)
 		}
 	}()
-	if message.IsAt() {
-		go func() {
-			defer func() {
-				if err := recover(); err != nil {
-					fmt.Println(err)
-				}
-			}()
-			u, _ := message.Bot.GetCurrentUser()
-			msg := strings.Replace(message.Content, "@"+u.NickName+" ", "", 1)
-			if strings.Contains(msg, "我看到") {
-				picname := strings.Replace(msg, "我看到", "", -1)
-				pic, err := source.AiPic(picname)
-				if err != nil {
-					message.ReplyText(err.Error())
+
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println(err)
+			}
+		}()
+		if message.IsSendByGroup() {
+			if message.IsAt() {
+				if err := source.OpHandle(message); err != nil {
+					log.Println("opHandle fail")
 					return
 				}
-				//ff := []rune(picname)
-				fname := fmt.Sprintf("./wxbot-pic-log/openai/%s.png", message.MsgId)
-				f, err := os.Create(fname)
-				defer f.Close()
-				if err != nil {
-					message.ReplyText(err.Error())
-					return
-				}
-				if err := png.Encode(f, pic); err != nil {
-					message.ReplyText(err.Error())
-					return
-				}
-				o, err := os.Open(fname)
-				message.ReplyImage(o)
+			}
+		} else {
+			if err := source.OpHandle(message); err != nil {
+				log.Println("opHandle fail")
 				return
 			}
-			reply, err := source.AiReply(msg)
-			if err != nil {
-				slice := strings.Split(source.Req, " ")
-				source.Req = strings.Join(slice[2:], " ")
-				reply, err := source.AiReply(msg)
-				message.ReplyText(reply)
-				if err != nil {
-					message.ReplyText(err.Error())
-				}
-			}
-			message.ReplyText(reply)
-		}()
-	}
+		}
+	}()
+
 	go func() {
 		if message.MsgId != "" {
 			err := msgLog(message)
