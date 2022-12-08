@@ -50,6 +50,8 @@ func main() {
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
 	bot.Block()
 }
+
+// 111
 func hotlogin(isHotlogin bool, bot *openwechat.Bot) {
 	if isHotlogin {
 		// 创建热存储容器对象
